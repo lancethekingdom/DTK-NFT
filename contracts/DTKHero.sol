@@ -118,25 +118,22 @@ contract DTKHero is ERC721, Pausable, Ownable {
         return recoverSigner(msgHash, sig) == authSigner;
     }
 
-    function totalSupply() public view returns (uint256) {
-        return supply.current();
-    }
-
     function _baseURI() internal view virtual override returns (string memory) {
         return uriPrefix;
     }
 
-    function tokenURI(uint256 _tokenId)
+    function totalSupply() public view returns (uint256) {
+        return supply.current();
+    }
+
+    function tokenURI(uint256 tokenId)
         public
         view
         virtual
         override
         returns (string memory)
     {
-        require(
-            _exists(_tokenId),
-            "ERC721Metadata: URI query for nonexistent token"
-        );
+        _requireMinted(tokenId);
 
         if (revealed == false) {
             return hiddenMetadataURI;
@@ -148,19 +145,19 @@ contract DTKHero is ERC721, Pausable, Ownable {
                 ? string(
                     abi.encodePacked(
                         currentBaseURI,
-                        _tokenId.toString(),
+                        tokenId.toString(),
                         uriSuffix
                     )
                 )
                 : "";
     }
 
-    function tokensOfOwner(address _owner)
+    function tokensOfOwner(address owner)
         public
         view
         returns (TokenInfo[] memory)
     {
-        uint256 ownerTokenCount = balanceOf(_owner);
+        uint256 ownerTokenCount = balanceOf(owner);
         TokenInfo[] memory ownedTokens = new TokenInfo[](ownerTokenCount);
         uint256 currentTokenId = 1;
         uint256 ownedTokenIndex = 0;
@@ -171,7 +168,7 @@ contract DTKHero is ERC721, Pausable, Ownable {
             if (_exists(currentTokenId)) {
                 address currentTokenOwner = ownerOf(currentTokenId);
 
-                if (currentTokenOwner == _owner) {
+                if (currentTokenOwner == owner) {
                     ownedTokens[ownedTokenIndex].tokenId = currentTokenId;
                     ownedTokens[ownedTokenIndex].deposited = depositedTokens[
                         currentTokenId
@@ -241,10 +238,6 @@ contract DTKHero is ERC721, Pausable, Ownable {
         bytes memory data
     ) public virtual override {
         _requireNotPaused();
-        require(
-            _isApprovedOrOwner(_msgSender(), tokenId),
-            "ERC721: caller is not token owner nor approved"
-        );
         require(!depositedTokens[tokenId], "Token has been deposited");
         super._safeTransfer(from, to, tokenId, data);
     }
