@@ -9,7 +9,7 @@ import { BigNumber } from 'ethers'
 import { KingVestingPoolFactory } from '../../utils/KingVestingPoolFactory'
 const chance = new Chance()
 
-describe('UNIT TEST: King Token - deployment', () => {
+describe.skip('UNIT TEST: King Token - deployment', () => {
   it('should return correct name when token is deployed', async () => {
     const [token] = await deployKingToken()
     const tokenName = await token.name()

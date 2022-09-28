@@ -3,7 +3,7 @@ import { expect, assert } from 'chai'
 import { ethers } from 'hardhat'
 import Chance from 'chance'
 
-describe('UNIT TEST: King Token - burn & burnFrom', () => {
+describe.skip('UNIT TEST: King Token - burn & burnFrom', () => {
   it('burn: should throw error if contract is paused', async () => {
     const [owner, target] = await ethers.getSigners()
     const [token] = await deployKingToken({ owner })

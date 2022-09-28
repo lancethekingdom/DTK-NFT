@@ -10,7 +10,7 @@ import { UnitParser } from '../../utils/UnitParser'
 
 const chance = new Chance()
 
-describe('UNIT TEST: KingVestingPool - getTotalReleased', () => {
+describe.skip('UNIT TEST: KingVestingPool - getTotalReleased', () => {
   it('_getLockupReleased: should return zero if the blocktime is less than lockup duration + launchTime', async () => {
     const [owner, beneficiaryA, beneficiaryB] = await ethers.getSigners()
 

@@ -8,7 +8,7 @@ import { SafeMath } from '../../utils/safeMath'
 
 const chance = new Chance()
 
-describe('UNIT TEST: KingVestingPool - getClaimable', () => {
+describe.skip('UNIT TEST: KingVestingPool - getClaimable', () => {
   it('should return zero if no any released for the user', async () => {
     const [owner, beneficiaryA, beneficiaryB] = await ethers.getSigners()
 

@@ -2,7 +2,8 @@ import { expect, assert } from 'chai'
 import { ethers } from 'hardhat'
 import { deployKingVestingPool } from '../../utils/deployKingVestingPool'
 import { deployMintableToken } from '../../utils/deployMintableToken'
-describe('UNIT TEST: KingVestingPool - deployment', () => {
+
+describe.skip('UNIT TEST: KingVestingPool - deployment', () => {
   it('should return correct token address when the vesting pool is deployed', async () => {
     const [token] = await deployMintableToken()
     const [vestingPool] = await deployKingVestingPool({

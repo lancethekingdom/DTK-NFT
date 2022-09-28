@@ -8,7 +8,7 @@ import { SafeMath } from '../../utils/safeMath'
 import { KingVestingPoolFactory } from '../../utils/KingVestingPoolFactory'
 const chance = new Chance()
 
-describe('UNIT TEST: King Token - initVestingPool', () => {
+describe.skip('UNIT TEST: King Token - initVestingPool', () => {
   it('should throw error if not the owner calling this function', async () => {
     const [owner, notOwner] = await ethers.getSigners()
     const [token] = await deployKingToken({ owner })

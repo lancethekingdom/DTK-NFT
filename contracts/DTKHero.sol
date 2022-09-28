@@ -22,6 +22,7 @@ contract DTKHero is ERC721, Pausable, Ownable {
 
     // for mint control
     Counters.Counter private supply;
+    uint256 public maxSupply;
 
     // for signature control
     address public authSigner;
@@ -30,12 +31,11 @@ contract DTKHero is ERC721, Pausable, Ownable {
     // for deposit control
     mapping(uint256 => bool) depositedTokens;
 
+    // for metadata control
+    bool public revealed = false;
     string public uriPrefix = "";
     string public uriSuffix = ".json";
     string public hiddenMetadataURI;
-    uint256 public maxSupply;
-
-    bool public revealed = false;
 
     constructor(
         address _authSigner,
@@ -97,8 +97,9 @@ contract DTKHero is ERC721, Pausable, Ownable {
         return ecrecover(message, v, r, s);
     }
 
-    function _validateMintHash(
-        address _minter,
+    function _validateHash(
+        string memory _methodIdentifier,
+        address _address,
         uint256 _tokenId,
         uint256 _nonce,
         bytes memory sig
@@ -106,32 +107,15 @@ contract DTKHero is ERC721, Pausable, Ownable {
         bytes32 msgHash = prefixed(
             keccak256(
                 abi.encodePacked(
-                    "mint(address,uint256,uint256,bytes)",
+                    _methodIdentifier,
                     address(this),
-                    _minter,
+                    _address,
                     _tokenId,
                     _nonce
                 )
             )
         );
         return recoverSigner(msgHash, sig) == authSigner;
-    }
-
-    modifier mintCompliance(
-        uint256 _tokenId,
-        address _minter,
-        uint256 _nonce,
-        bytes memory sig
-    ) {
-        require(!_exists(_tokenId), "token already minted");
-        require(!sigNonces[_minter][_nonce], "nonce already consumed");
-
-        require(
-            _validateMintHash(_minter, _tokenId, _nonce, sig),
-            "Invalid signature"
-        );
-        require(supply.current() + 1 <= maxSupply, "Max supply exceeded!");
-        _;
     }
 
     function totalSupply() public view returns (uint256) {
@@ -189,7 +173,9 @@ contract DTKHero is ERC721, Pausable, Ownable {
 
                 if (currentTokenOwner == _owner) {
                     ownedTokens[ownedTokenIndex].tokenId = currentTokenId;
-                    ownedTokens[ownedTokenIndex].deposited = depositedTokens[currentTokenId];
+                    ownedTokens[ownedTokenIndex].deposited = depositedTokens[
+                        currentTokenId
+                    ];
 
                     ownedTokenIndex++;
                 }
@@ -199,18 +185,6 @@ contract DTKHero is ERC721, Pausable, Ownable {
         }
 
         return ownedTokens;
-    }
-
-    function mint(
-        uint256 _tokenId,
-        uint256 _nonce,
-        bytes memory sig
-    ) public mintCompliance(_tokenId, _msgSender(), _nonce, sig) {
-        _requireNotPaused();
-
-        supply.increment();
-        sigNonces[msg.sender][_nonce] = true;
-        _safeMint(_msgSender(), _tokenId);
     }
 
     function setRevealed(bool _state) external onlyOwner {
@@ -275,28 +249,112 @@ contract DTKHero is ERC721, Pausable, Ownable {
         super._safeTransfer(from, to, tokenId, data);
     }
 
+    modifier mintCompliance(
+        uint256 tokenId,
+        address minter,
+        uint256 nonce,
+        bytes memory sig
+    ) {
+        _requireNotPaused();
+        require(!_exists(tokenId), "token already minted");
+        require(!sigNonces[minter][nonce], "nonce already consumed");
+
+        require(
+            _validateHash(
+                "mint(uint256,uint256,bytes)",
+                minter,
+                tokenId,
+                nonce,
+                sig
+            ),
+            "Invalid signature"
+        );
+        require(supply.current() + 1 <= maxSupply, "Max supply exceeded!");
+        _;
+    }
+
+    function mint(
+        uint256 tokenId,
+        uint256 nonce,
+        bytes memory sig
+    ) public mintCompliance(tokenId, _msgSender(), nonce, sig) {
+        supply.increment();
+        sigNonces[msg.sender][nonce] = true;
+        super._safeMint(_msgSender(), tokenId);
+    }
+
     function burn(uint256 tokenId) public {
         _requireNotPaused();
         _requireMinted(tokenId);
         require(_isApprovedOrOwner(msg.sender, tokenId), "Unauthorized");
         require(!depositedTokens[tokenId], "Token has been deposited");
-        super._burn(tokenId);
         supply.decrement();
+        super._burn(tokenId);
     }
 
-    function deposit(uint256 tokenId) external {
+    modifier depositCompliance(
+        uint256 tokenId,
+        address _address,
+        uint256 nonce,
+        bytes memory sig
+    ) {
         _requireNotPaused();
         _requireMinted(tokenId);
-        require(_isApprovedOrOwner(msg.sender, tokenId), "Unauthorized");
+        require(_isApprovedOrOwner(_address, tokenId), "Unauthorized");
         require(!depositedTokens[tokenId], "Token has been deposited");
+        require(!sigNonces[_address][nonce], "nonce already consumed");
+
+        require(
+            _validateHash(
+                "deposit(uint256,uint256,bytes)",
+                _address,
+                tokenId,
+                nonce,
+                sig
+            ),
+            "Invalid signature"
+        );
+        _;
+    }
+
+    function deposit(
+        uint256 tokenId,
+        uint256 _nonce,
+        bytes memory sig
+    ) external depositCompliance(tokenId, _msgSender(), _nonce, sig) {
         depositedTokens[tokenId] = true;
     }
 
-    function withdraw(uint256 tokenId) external {
+    modifier withdrawCompliance(
+        uint256 tokenId,
+        address _address,
+        uint256 nonce,
+        bytes memory sig
+    ) {
         _requireNotPaused();
         _requireMinted(tokenId);
-        require(_isApprovedOrOwner(msg.sender, tokenId), "Unauthorized");
+        require(_isApprovedOrOwner(_address, tokenId), "Unauthorized");
         require(depositedTokens[tokenId], "Token has not been deposited");
+        require(!sigNonces[_address][nonce], "nonce already consumed");
+
+        require(
+            _validateHash(
+                "withdraw(uint256,uint256,bytes)",
+                _address,
+                tokenId,
+                nonce,
+                sig
+            ),
+            "Invalid signature"
+        );
+        _;
+    }
+
+    function withdraw(
+        uint256 tokenId,
+        uint256 _nonce,
+        bytes memory sig
+    ) external withdrawCompliance(tokenId, _msgSender(), _nonce, sig) {
         depositedTokens[tokenId] = false;
     }
 }
