@@ -2,6 +2,7 @@
 pragma solidity ^0.8.9;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Pausable.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
@@ -16,7 +17,7 @@ struct TokenInfo {
     bool deposited;
 }
 
-contract DTKHero is ERC721, Pausable, Ownable {
+contract DTKHero is ERC721, ERC721Pausable, Ownable {
     using Strings for uint256;
     using Counters for Counters.Counter;
 
@@ -216,7 +217,6 @@ contract DTKHero is ERC721, Pausable, Ownable {
         address to,
         uint256 tokenId
     ) public override {
-        _requireNotPaused();
         require(!depositedTokens[tokenId], "Token has been deposited");
         super.transferFrom(from, to, tokenId);
     }
@@ -226,7 +226,6 @@ contract DTKHero is ERC721, Pausable, Ownable {
         address to,
         uint256 tokenId
     ) public override {
-        _requireNotPaused();
         require(!depositedTokens[tokenId], "Token has been deposited");
         super.safeTransferFrom(from, to, tokenId);
     }
@@ -237,7 +236,6 @@ contract DTKHero is ERC721, Pausable, Ownable {
         uint256 tokenId,
         bytes memory data
     ) public virtual override {
-        _requireNotPaused();
         require(!depositedTokens[tokenId], "Token has been deposited");
         super._safeTransfer(from, to, tokenId, data);
     }
@@ -248,7 +246,6 @@ contract DTKHero is ERC721, Pausable, Ownable {
         uint256 nonce,
         bytes memory sig
     ) {
-        _requireNotPaused();
         require(!_exists(tokenId), "token already minted");
         require(!sigNonces[minter][nonce], "nonce already consumed");
 
@@ -272,35 +269,38 @@ contract DTKHero is ERC721, Pausable, Ownable {
         bytes memory sig
     ) public mintCompliance(tokenId, _msgSender(), nonce, sig) {
         supply.increment();
-        sigNonces[msg.sender][nonce] = true;
+        sigNonces[_msgSender()][nonce] = true;
         super._safeMint(_msgSender(), tokenId);
     }
 
-    function burn(uint256 tokenId) public {
-        _requireNotPaused();
+    modifier burnCompliance(uint256 tokenId) {
         _requireMinted(tokenId);
-        require(_isApprovedOrOwner(msg.sender, tokenId), "Unauthorized");
+        require(_isApprovedOrOwner(_msgSender(), tokenId), "Unauthorized");
         require(!depositedTokens[tokenId], "Token has been deposited");
+        _;
+    }
+
+    function burn(uint256 tokenId) public burnCompliance(tokenId) {
         supply.decrement();
         super._burn(tokenId);
     }
 
     modifier depositCompliance(
         uint256 tokenId,
-        address _address,
+        address wallet,
         uint256 nonce,
         bytes memory sig
     ) {
         _requireNotPaused();
         _requireMinted(tokenId);
-        require(_isApprovedOrOwner(_address, tokenId), "Unauthorized");
+        require(_isApprovedOrOwner(wallet, tokenId), "Unauthorized");
         require(!depositedTokens[tokenId], "Token has been deposited");
-        require(!sigNonces[_address][nonce], "nonce already consumed");
+        require(!sigNonces[wallet][nonce], "nonce already consumed");
 
         require(
             _validateHash(
                 "deposit(uint256,uint256,bytes)",
-                _address,
+                wallet,
                 tokenId,
                 nonce,
                 sig
@@ -315,25 +315,26 @@ contract DTKHero is ERC721, Pausable, Ownable {
         uint256 _nonce,
         bytes memory sig
     ) external depositCompliance(tokenId, _msgSender(), _nonce, sig) {
+        sigNonces[_msgSender()][_nonce] = true;
         depositedTokens[tokenId] = true;
     }
 
     modifier withdrawCompliance(
         uint256 tokenId,
-        address _address,
+        address wallet,
         uint256 nonce,
         bytes memory sig
     ) {
         _requireNotPaused();
         _requireMinted(tokenId);
-        require(_isApprovedOrOwner(_address, tokenId), "Unauthorized");
+        require(_isApprovedOrOwner(wallet, tokenId), "Unauthorized");
         require(depositedTokens[tokenId], "Token has not been deposited");
-        require(!sigNonces[_address][nonce], "nonce already consumed");
+        require(!sigNonces[wallet][nonce], "nonce already consumed");
 
         require(
             _validateHash(
                 "withdraw(uint256,uint256,bytes)",
-                _address,
+                wallet,
                 tokenId,
                 nonce,
                 sig
@@ -348,6 +349,15 @@ contract DTKHero is ERC721, Pausable, Ownable {
         uint256 _nonce,
         bytes memory sig
     ) external withdrawCompliance(tokenId, _msgSender(), _nonce, sig) {
+        sigNonces[_msgSender()][_nonce] = true;
         depositedTokens[tokenId] = false;
+    }
+
+    function _beforeTokenTransfer(
+        address from,
+        address to,
+        uint256 tokenId
+    ) internal override(ERC721, ERC721Pausable) {
+        super._beforeTokenTransfer(from, to, tokenId);
     }
 }
