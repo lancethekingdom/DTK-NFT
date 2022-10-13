@@ -35,7 +35,7 @@ contract DTKHero is ERC721, ERC721Pausable, Ownable {
     // for metadata control
     bool public revealed = false;
     string public uriPrefix = "";
-    string public uriSuffix = ".json";
+    string public uriSuffix = "";
     string public hiddenMetadataURI;
 
     constructor(
