@@ -8,4 +8,16 @@ typechain-types
 #Hardhat files
 cache
 artifacts
+
+node_modules
+.env
+.env.development
+coverage
+coverage.json
+typechain
+typechain-types
+
+#Hardhat files
+cache
+artifacts
 types
