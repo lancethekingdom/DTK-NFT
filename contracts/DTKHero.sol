@@ -8,8 +8,6 @@ import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/access/AccessControlEnumerable.sol";
-import "erc721a/contracts/IERC721A.sol";
-
 // import "hardhat/console.sol";
 
 struct TokenInfo {
@@ -33,25 +31,35 @@ contract DTKHero is ERC721, ERC721Pausable, Ownable {
     mapping(uint256 => bool) depositedTokens;
 
     // for metadata control
-    bool public revealed = false;
     string public uriPrefix = "";
     string public uriSuffix = "";
-    string public hiddenMetadataURI;
 
-    constructor(
-        address _authSigner,
-        string memory _hiddenMetadataURI,
-        uint256 _maxSupply
-    ) ERC721("HeroMysteryBox", "HMB") {
+    event Mint(
+        address indexed minter,
+        uint256 indexed tokenId,
+        uint256 indexed nonce
+    );
+
+    event Burn(address indexed owner, uint256 indexed tokenId);
+
+    event Deposit(
+        address indexed owner,
+        uint256 indexed tokenId,
+        uint256 indexed nonce
+    );
+    event Withdraw(
+        address indexed owner,
+        uint256 indexed tokenId,
+        uint256 indexed nonce
+    );
+
+    constructor(address _authSigner, uint256 _maxSupply)
+        ERC721("HeroMysteryBox", "HMB")
+    {
         require(_authSigner != address(0), "Invalid addr");
-        require(
-            bytes(_hiddenMetadataURI).length != 0,
-            "Invalid hidden metadata uri"
-        );
 
         authSigner = _authSigner;
         maxSupply = _maxSupply;
-        setHiddenMetadataURI(hiddenMetadataURI);
     }
 
     function splitSignature(bytes memory sig)
@@ -101,6 +109,25 @@ contract DTKHero is ERC721, ERC721Pausable, Ownable {
     function _validateHash(
         string memory _methodIdentifier,
         address _address,
+        uint256 _nonce,
+        bytes memory sig
+    ) internal view returns (bool) {
+        bytes32 msgHash = prefixed(
+            keccak256(
+                abi.encodePacked(
+                    _methodIdentifier,
+                    address(this),
+                    _address,
+                    _nonce
+                )
+            )
+        );
+        return recoverSigner(msgHash, sig) == authSigner;
+    }
+
+    function _validateHashWithTokenId(
+        string memory _methodIdentifier,
+        address _address,
         uint256 _tokenId,
         uint256 _nonce,
         bytes memory sig
@@ -136,10 +163,6 @@ contract DTKHero is ERC721, ERC721Pausable, Ownable {
     {
         _requireMinted(tokenId);
 
-        if (revealed == false) {
-            return hiddenMetadataURI;
-        }
-
         string memory currentBaseURI = _baseURI();
         return
             bytes(currentBaseURI).length > 0
@@ -162,9 +185,8 @@ contract DTKHero is ERC721, ERC721Pausable, Ownable {
         TokenInfo[] memory ownedTokens = new TokenInfo[](ownerTokenCount);
         uint256 currentTokenId = 1;
         uint256 ownedTokenIndex = 0;
-
         while (
-            ownedTokenIndex < ownerTokenCount && currentTokenId <= maxSupply
+            ownedTokenIndex < ownerTokenCount && currentTokenId <= totalSupply()
         ) {
             if (_exists(currentTokenId)) {
                 address currentTokenOwner = ownerOf(currentTokenId);
@@ -178,22 +200,9 @@ contract DTKHero is ERC721, ERC721Pausable, Ownable {
                     ownedTokenIndex++;
                 }
             }
-
             currentTokenId++;
         }
-
         return ownedTokens;
-    }
-
-    function setRevealed(bool _state) external onlyOwner {
-        revealed = _state;
-    }
-
-    function setHiddenMetadataURI(string memory _hiddenMetadataURI)
-        public
-        onlyOwner
-    {
-        hiddenMetadataURI = _hiddenMetadataURI;
     }
 
     function setUriPrefix(string memory _uriPrefix) public onlyOwner {
@@ -241,39 +250,32 @@ contract DTKHero is ERC721, ERC721Pausable, Ownable {
     }
 
     modifier mintCompliance(
-        uint256 tokenId,
         address minter,
         uint256 nonce,
         bytes memory sig
     ) {
-        require(!_exists(tokenId), "token already minted");
+        _requireNotPaused();
         require(!sigNonces[minter][nonce], "nonce already consumed");
 
         require(
-            _validateHash(
-                "mint(uint256,uint256,bytes)",
-                minter,
-                tokenId,
-                nonce,
-                sig
-            ),
+            _validateHash("mint(uint256,uint256,bytes)", minter, nonce, sig),
             "Invalid signature"
         );
         require(supply.current() + 1 <= maxSupply, "Max supply exceeded!");
         _;
     }
 
-    function mint(
-        uint256 tokenId,
-        uint256 nonce,
-        bytes memory sig
-    ) public mintCompliance(tokenId, _msgSender(), nonce, sig) {
-        supply.increment();
+    function mint(uint256 nonce, bytes memory sig)
+        public
+        mintCompliance(_msgSender(), nonce, sig)
+    {
+        super._safeMint(_msgSender(), supply.current());
         sigNonces[_msgSender()][nonce] = true;
-        super._safeMint(_msgSender(), tokenId);
+        supply.increment();
     }
 
     modifier burnCompliance(uint256 tokenId) {
+        _requireNotPaused();
         _requireMinted(tokenId);
         require(_isApprovedOrOwner(_msgSender(), tokenId), "Unauthorized");
         require(!depositedTokens[tokenId], "Token has been deposited");
@@ -281,8 +283,8 @@ contract DTKHero is ERC721, ERC721Pausable, Ownable {
     }
 
     function burn(uint256 tokenId) public burnCompliance(tokenId) {
-        supply.decrement();
         super._burn(tokenId);
+        supply.decrement();
     }
 
     modifier depositCompliance(
@@ -298,7 +300,7 @@ contract DTKHero is ERC721, ERC721Pausable, Ownable {
         require(!sigNonces[wallet][nonce], "nonce already consumed");
 
         require(
-            _validateHash(
+            _validateHashWithTokenId(
                 "deposit(uint256,uint256,bytes)",
                 wallet,
                 tokenId,
@@ -332,7 +334,7 @@ contract DTKHero is ERC721, ERC721Pausable, Ownable {
         require(!sigNonces[wallet][nonce], "nonce already consumed");
 
         require(
-            _validateHash(
+            _validateHashWithTokenId(
                 "withdraw(uint256,uint256,bytes)",
                 wallet,
                 tokenId,

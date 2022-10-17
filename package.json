@@ -4,9 +4,11 @@
   "author": "Lance Tsang",
   "license": "MIT",
   "scripts": {
-    "compile": "hardhat compile",
+    "compile": "dotenv -e .env.development -- yarn hardhat compile",
     "test": "hardhat test",
-    "coverage": "hardhat coverage"
+    "coverage": "hardhat coverage",
+    "slither": "slither ./contracts --solc-remaps '@openzeppelin=node_modules/@openzeppelin @chainlink=node_modules/@chainlink' --exclude naming-convention,external-function,low-level-calls --buidler-ignore-compile",
+    "deploy:dev": "dotenv -e .env.development -- hardhat --network goerli deploy"
   },
   "devDependencies": {
     "@ethersproject/abi": "^5.4.7",
@@ -14,7 +16,7 @@
     "@nomicfoundation/hardhat-chai-matchers": "^1.0.0",
     "@nomicfoundation/hardhat-network-helpers": "^1.0.0",
     "@nomicfoundation/hardhat-toolbox": "^1.0.1",
-    "@nomiclabs/hardhat-ethers": "^2.1.1",
+    "@nomiclabs/hardhat-ethers": "npm:hardhat-deploy-ethers",
     "@nomiclabs/hardhat-etherscan": "^3.0.0",
     "@nomiclabs/hardhat-waffle": "^2.0.3",
     "@typechain/ethers-v5": "^10.1.0",
@@ -25,9 +27,9 @@
     "@types/node": ">=12.0.0",
     "chai": "^4.2.0",
     "chance": "^1.1.8",
-    "erc721a": "^4.2.3",
-    "ethers": "^5.0.0",
+    "ethers": "^5.7.1",
     "hardhat": "^2.10.2",
+    "hardhat-deploy": "^0.11.15",
     "hardhat-gas-reporter": "^1.0.8",
     "solidity-coverage": "^0.7.21",
     "ts-node": ">=8.0.0",
@@ -38,6 +40,9 @@
     "@ethersproject/bignumber": "^5.7.0",
     "@openzeppelin/contracts": "^4.7.3",
     "date-fns": "^2.29.2",
-    "decimal.js": "^10.4.0"
+    "decimal.js": "^10.4.0",
+    "dotenv": "^16.0.3",
+    "dotenv-cli": "^6.0.0",
+    "envalid": "^7.3.1"
   }
 }
