@@ -8,8 +8,6 @@ import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/access/AccessControlEnumerable.sol";
-import "erc721a/contracts/IERC721A.sol";
-
 // import "hardhat/console.sol";
 
 struct TokenInfo {
@@ -188,7 +186,7 @@ contract DTKHero is ERC721, ERC721Pausable, Ownable {
         uint256 currentTokenId = 1;
         uint256 ownedTokenIndex = 0;
         while (
-            ownedTokenIndex < ownerTokenCount && currentTokenId <= maxSupply
+            ownedTokenIndex < ownerTokenCount && currentTokenId <= totalSupply()
         ) {
             if (_exists(currentTokenId)) {
                 address currentTokenOwner = ownerOf(currentTokenId);
@@ -256,6 +254,7 @@ contract DTKHero is ERC721, ERC721Pausable, Ownable {
         uint256 nonce,
         bytes memory sig
     ) {
+        _requireNotPaused();
         require(!sigNonces[minter][nonce], "nonce already consumed");
 
         require(
@@ -276,6 +275,7 @@ contract DTKHero is ERC721, ERC721Pausable, Ownable {
     }
 
     modifier burnCompliance(uint256 tokenId) {
+        _requireNotPaused();
         _requireMinted(tokenId);
         require(_isApprovedOrOwner(_msgSender(), tokenId), "Unauthorized");
         require(!depositedTokens[tokenId], "Token has been deposited");

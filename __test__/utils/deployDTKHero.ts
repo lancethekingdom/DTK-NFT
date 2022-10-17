@@ -5,16 +5,18 @@ import { DTKHero } from '../../types'
 
 export type DeployDTKHeroConfig = {
   owner?: SignerWithAddress
+  authSigner?: SignerWithAddress
 }
 
-export const deployDTKHero = async (
-  { owner }: DeployDTKHeroConfig = { owner: undefined },
-) => {
+export const deployDTKHero = async ({
+  owner,
+  authSigner,
+}: DeployDTKHeroConfig = {}) => {
   const [defaultOwner] = await ethers.getSigners()
   const TokenContractFactory = await ethers.getContractFactory('DTKHero')
   const targetOwner = owner ?? defaultOwner
   const token = await TokenContractFactory.connect(targetOwner).deploy(
-    targetOwner.address,
+    authSigner?.address ?? targetOwner.address,
     3000,
   )
   return [token, targetOwner] as [DTKHero, SignerWithAddress]
