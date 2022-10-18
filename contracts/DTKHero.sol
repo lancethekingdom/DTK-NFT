@@ -267,7 +267,9 @@ contract DTKHero is ERC721, ERC721Pausable, Ownable {
         mintCompliance(_msgSender(), nonce, sig)
     {
         super._safeMint(_msgSender(), supply.current());
+
         sigNonces[_msgSender()][nonce] = true;
+        emit Mint(_msgSender(), supply.current(), nonce);
         supply.increment();
     }
 
@@ -281,6 +283,7 @@ contract DTKHero is ERC721, ERC721Pausable, Ownable {
 
     function burn(uint256 tokenId) public burnCompliance(tokenId) {
         super._burn(tokenId);
+        emit Burn(_msgSender(), tokenId);
         supply.decrement();
     }
 
@@ -316,6 +319,7 @@ contract DTKHero is ERC721, ERC721Pausable, Ownable {
     ) external depositCompliance(tokenId, _msgSender(), _nonce, sig) {
         sigNonces[_msgSender()][_nonce] = true;
         depositedTokens[tokenId] = true;
+        emit Deposit(_msgSender(), tokenId, _nonce);
     }
 
     modifier withdrawCompliance(
@@ -350,6 +354,7 @@ contract DTKHero is ERC721, ERC721Pausable, Ownable {
     ) external withdrawCompliance(tokenId, _msgSender(), _nonce, sig) {
         sigNonces[_msgSender()][_nonce] = true;
         depositedTokens[tokenId] = false;
+        emit Withdraw(_msgSender(), tokenId, _nonce);
     }
 
     function _beforeTokenTransfer(
