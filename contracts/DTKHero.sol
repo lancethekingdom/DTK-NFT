@@ -173,6 +173,10 @@ contract DTKHero is ERC721, ERC721Pausable, Ownable {
                 : "";
     }
 
+    function tokenDepositStatus(uint256 tokenId) public view returns (bool) {
+        return depositedTokens[tokenId];
+    }
+
     function tokensOfOwner(address owner)
         public
         view
@@ -180,7 +184,7 @@ contract DTKHero is ERC721, ERC721Pausable, Ownable {
     {
         uint256 ownerTokenCount = balanceOf(owner);
         TokenInfo[] memory ownedTokens = new TokenInfo[](ownerTokenCount);
-        uint256 currentTokenId = 1;
+        uint256 currentTokenId = 0;
         uint256 ownedTokenIndex = 0;
         while (
             ownedTokenIndex < ownerTokenCount && currentTokenId <= totalSupply()
@@ -193,7 +197,6 @@ contract DTKHero is ERC721, ERC721Pausable, Ownable {
                     ownedTokens[ownedTokenIndex].deposited = depositedTokens[
                         currentTokenId
                     ];
-
                     ownedTokenIndex++;
                 }
             }
