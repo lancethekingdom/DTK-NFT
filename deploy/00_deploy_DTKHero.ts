@@ -18,4 +18,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     `Shield has been deployed to ${network.name} at ${res.address} with ${res.gasEstimates} gas`,
   )
 }
-export default func
+
+func.tags = ['DtkHero']
+export default func 

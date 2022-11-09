@@ -74,6 +74,7 @@ contract DTKHeroControlPool is Ownable, ERC721Holder {
                 ""
             );
         }
+        emit ERC721Transfer(erc721Address, to, tokenId);
     }
 
     function withdrawDTKHero(uint256 tokenId) external {

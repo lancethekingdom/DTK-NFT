@@ -1,4 +1,4 @@
-import { deployDTKHero } from '../../utils/deployDTKHero'
+import { deployMintableERC721 } from '../../utils/deployMintableERC721'
 import { expect } from 'chai'
 import { ethers } from 'hardhat'
 import { deployDTKHeroControlPool } from '../../utils/deployDTKHeroContolPool'
@@ -9,7 +9,7 @@ describe('UNIT TEST: DTK Hero Control Pool - transfer', () => {
     const [dtkHeroControlPool, _dtkHero] = await deployDTKHeroControlPool({
       owner,
     })
-    const [anotherERC721] = await deployDTKHero({ owner })
+    const [anotherERC721] = await deployMintableERC721({ owner })
 
     // user mint an dtkHero NFT
     await anotherERC721.connect(user).mint()

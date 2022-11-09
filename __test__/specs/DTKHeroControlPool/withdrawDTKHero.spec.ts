@@ -1,5 +1,3 @@
-import { SafeMath } from '../../utils/safeMath'
-import { deployDTKHero } from '../../utils/deployDTKHero'
 import { expect, assert } from 'chai'
 import { ethers } from 'hardhat'
 import { deployDTKHeroControlPool } from '../../utils/deployDTKHeroContolPool'

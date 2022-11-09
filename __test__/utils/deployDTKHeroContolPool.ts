@@ -1,13 +1,15 @@
-import { DTKHeroControlPool } from './../../types/contracts/DTKHeroControlPool'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 // @ts-ignore
 import { ethers } from 'hardhat'
-import { DTKHero } from '../../types'
-import { deployDTKHero } from './deployDTKHero'
+import {
+  DTKHeroControlPool,
+  MintableERC721,
+} from '../../types/contracts'
+import { deployMintableERC721 } from './deployMintableERC721'
 
 export type DeployDTKHeroConfig = {
   owner?: SignerWithAddress
-  dtkHero?: DTKHero
+  dtkHero?: MintableERC721
 }
 
 export const deployDTKHeroControlPool = async ({
@@ -19,11 +21,15 @@ export const deployDTKHeroControlPool = async ({
     'DTKHeroControlPool',
   )
   const targetOwner = owner ?? defaultOwner
-  const targetDtkHero = dtkHero ?? (await deployDTKHero({ owner }))[0]
-  
+  const targetDtkHero = dtkHero ?? (await deployMintableERC721({ owner }))[0]
+
   const controlPool = await DTKHeroControlPoolContractFactory.connect(
     targetOwner,
   ).deploy(targetDtkHero.address)
 
-  return [controlPool, targetDtkHero, targetOwner] as [DTKHeroControlPool, DTKHero, SignerWithAddress]
+  return [controlPool, targetDtkHero, targetOwner] as [
+    DTKHeroControlPool,
+    MintableERC721,
+    SignerWithAddress,
+  ]
 }

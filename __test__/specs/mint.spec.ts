@@ -3,7 +3,7 @@ import { deployDTKHero } from '../utils/deployDTKHero'
 import { expect, assert } from 'chai'
 import { ethers } from 'hardhat'
 
-describe.skip('UNIT TEST: DTK Hero - mint', () => {
+describe('UNIT TEST: DTK Hero - mint', () => {
   it('should throw error if contract is paused', async () => {
     const [owner, authSigner, target] = await ethers.getSigners()
     const [DTKHero] = await deployDTKHero({ owner, authSigner })
@@ -24,11 +24,11 @@ describe.skip('UNIT TEST: DTK Hero - mint', () => {
     expect(paused).to.be.true
 
     return DTKHero.connect(target)
-    // .mint(0, authedSig)
-    // .then(() => assert.fail())/
-    // .catch((err: any) => {
-    //   assert.include(err.message, 'Pausable: paused')
-    // })
+      .mint(0, authedSig)
+      .then(() => assert.fail())
+      .catch((err: any) => {
+        assert.include(err.message, 'Pausable: paused')
+      })
   })
 
   it('should mint one nft to the target address and increment the nft contract totalsupply', async () => {
@@ -48,7 +48,7 @@ describe.skip('UNIT TEST: DTK Hero - mint', () => {
     const totalSupplyBefore = (await DTKHero.totalSupply()).toNumber()
     const tokenBalanceBefore = await DTKHero.tokensOfOwner(target.address)
 
-    // await DTKHero.connect(target).mint(0, authedSig)
+    await DTKHero.connect(target).mint(0, authedSig)
 
     const balanceAfter = (await DTKHero.balanceOf(target.address)).toNumber()
 
@@ -76,7 +76,6 @@ describe.skip('UNIT TEST: DTK Hero - mint', () => {
     //   console.log('balanceFromReturn: ',balanceFromReturn);
 
     const tokenBalanceAfter = await DTKHero.tokensOfOwner(target.address)
-    // console.log('tokenBalanceAfter: ', tokenBalanceAfter)
     expect(balanceAfter).to.be.equal(balanceBefore + 1)
     expect(totalSupplyAfter).to.be.equal(SafeMath.add(totalSupplyBefore, 1))
     expect(tokenBalanceAfter.length).to.be.equal(tokenBalanceBefore.length + 1)
