@@ -12,14 +12,14 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 contract DTKHeroControlPool is Ownable, ERC721Holder {
     IERC721 immutable _dtkHero;
 
-    event ERC721Received(
+    event OnERC721Received(
         address indexed erc721,
         address indexed operator,
         address from,
         uint256 indexed tokenId
     );
     event WithdrawDTKHero(address indexed operator, uint256 tokenId);
-    event ERC721Transfer(
+    event TransferERC721(
         address indexed erc721Address,
         address indexed to,
         uint256 indexed tokenId
@@ -42,7 +42,7 @@ contract DTKHeroControlPool is Ownable, ERC721Holder {
         if (_msgSender() == address(_dtkHero)) {
             _depositedDtkHero[tokenId] = operator;
         }
-        emit ERC721Received(_msgSender(), operator, from, tokenId);
+        emit OnERC721Received(_msgSender(), operator, from, tokenId);
         return super.onERC721Received(operator, from, tokenId, data);
     }
 
@@ -50,7 +50,7 @@ contract DTKHeroControlPool is Ownable, ERC721Holder {
         return address(_dtkHero);
     }
 
-    function depositedDtkHeroOwner(uint256 tokenId)
+    function ownerOfDepositedDtkHero(uint256 tokenId)
         external
         view
         returns (address)
@@ -58,7 +58,7 @@ contract DTKHeroControlPool is Ownable, ERC721Holder {
         return _depositedDtkHero[tokenId];
     }
 
-    function transfer(
+    function transferERC721(
         address erc721Address,
         address to,
         uint256 tokenId
@@ -74,7 +74,7 @@ contract DTKHeroControlPool is Ownable, ERC721Holder {
                 ""
             );
         }
-        emit ERC721Transfer(erc721Address, to, tokenId);
+        emit TransferERC721(erc721Address, to, tokenId);
     }
 
     function withdrawDTKHero(uint256 tokenId) external {

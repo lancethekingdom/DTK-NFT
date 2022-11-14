@@ -3,8 +3,8 @@ import { expect } from 'chai'
 import { ethers } from 'hardhat'
 import { deployDTKHeroControlPool } from '../../utils/deployDTKHeroContolPool'
 
-describe('UNIT TEST: DTK Hero Control Pool - transfer', () => {
-  it('transfer: should transfer corresponding erc721 to the target address', async () => {
+describe('UNIT TEST: DTK Hero Control Pool - transferERC721', () => {
+  it('transferERC721: should transfer corresponding erc721 to the target address', async () => {
     const [owner, user] = await ethers.getSigners()
     const [dtkHeroControlPool, _dtkHero] = await deployDTKHeroControlPool({
       owner,
@@ -31,7 +31,7 @@ describe('UNIT TEST: DTK Hero Control Pool - transfer', () => {
 
     await dtkHeroControlPool
       .connect(owner)
-      .transfer(anotherERC721.address, user.address, 0)
+      .transferERC721(anotherERC721.address, user.address, 0)
 
     const balanceOfControlPoolAfter = await anotherERC721
       .connect(user)
@@ -47,7 +47,7 @@ describe('UNIT TEST: DTK Hero Control Pool - transfer', () => {
     expect(balanceOfUserAfter).to.equal(1)
   })
 
-  it('transfer: should transfer corresponding dtkhero to the target address, and reset the depositor address back to address(0)', async () => {
+  it('transferERC721: should transfer corresponding dtkhero to the target address, and reset the depositor address back to address(0)', async () => {
     const [owner, user] = await ethers.getSigners()
     const [dtkHeroControlPool, dtkHero] = await deployDTKHeroControlPool({
       owner,
@@ -72,11 +72,11 @@ describe('UNIT TEST: DTK Hero Control Pool - transfer', () => {
       .balanceOf(user.address)
     const depositerAddressBefore = await dtkHeroControlPool
       .connect(user)
-      .depositedDtkHeroOwner(0)
+      .ownerOfDepositedDtkHero(0)
 
     await dtkHeroControlPool
       .connect(owner)
-      .transfer(dtkHero.address, user.address, 0)
+      .transferERC721(dtkHero.address, user.address, 0)
 
     const balanceOfControlPoolAfter = await dtkHero
       .connect(user)
@@ -87,7 +87,7 @@ describe('UNIT TEST: DTK Hero Control Pool - transfer', () => {
 
     const depositerAddressAfter = await dtkHeroControlPool
       .connect(user)
-      .depositedDtkHeroOwner(0)
+      .ownerOfDepositedDtkHero(0)
 
     expect(balanceOfControlPoolBefore).to.equal(1)
     expect(balanceOfControlPoolAfter).to.equal(0)

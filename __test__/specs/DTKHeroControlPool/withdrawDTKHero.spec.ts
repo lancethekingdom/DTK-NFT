@@ -28,7 +28,7 @@ describe('UNIT TEST: DTK Hero Control Pool - withdrawDTKHero', () => {
       .balanceOf(user.address)
     const depositerAddressBefore = await dtkHeroControlPool
       .connect(user)
-      .depositedDtkHeroOwner(0)
+      .ownerOfDepositedDtkHero(0)
 
     await dtkHeroControlPool.connect(user).withdrawDTKHero(0)
 
@@ -41,7 +41,7 @@ describe('UNIT TEST: DTK Hero Control Pool - withdrawDTKHero', () => {
 
     const depositerAddressAfter = await dtkHeroControlPool
       .connect(user)
-      .depositedDtkHeroOwner(0)
+      .ownerOfDepositedDtkHero(0)
 
     expect(balanceOfControlPoolBefore).to.equal(1)
     expect(balanceOfControlPoolAfter).to.equal(0)
