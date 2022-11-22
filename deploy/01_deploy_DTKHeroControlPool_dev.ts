@@ -9,7 +9,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const dtkHeroRes = await deploy('DTKHero', {
     from: deployer,
-    args: [deployer, 3000],
+    args: [
+      deployer,
+      3000,
+      'https://asia-northeast1-defend-the-kingdom-unitytest.cloudfunctions.net/dtkHeroNftMetadata/',
+      '',
+    ],
     log: true,
     autoMine: true, // speed up deployment on local network (ganache, hardhat), no effect on live networks
   })
@@ -20,7 +25,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const dtkHeroContrlPoolRes = await deploy('DTKHeroControlPool', {
     from: deployer,
-    args: [dtkHeroRes.address],
+    args: [dtkHeroRes.address, deployer],
     log: true,
     autoMine: true, // speed up deployment on local network (ganache, hardhat), no effect on live networks
   })

@@ -18,6 +18,8 @@ export const deployDTKHero = async ({
   const token = await TokenContractFactory.connect(targetOwner).deploy(
     authSigner?.address ?? targetOwner.address,
     3000,
+    '',
+    ''
   )
   return [token, targetOwner] as [DTKHero, SignerWithAddress]
 }

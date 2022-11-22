@@ -50,13 +50,19 @@ contract DTKHero is ERC721, ERC721Pausable, Ownable {
         uint256 indexed nonce
     );
 
-    constructor(address _authSigner, uint256 _maxSupply)
-        ERC721("HeroMysteryBox", "HMB")
-    {
+    constructor(
+        address _authSigner,
+        uint256 _maxSupply,
+        string memory _uriPrefix,
+        string memory _uriSuffix
+    ) ERC721("DtkHero", "DTKH") {
         require(_authSigner != address(0), "Invalid addr");
 
         authSigner = _authSigner;
         maxSupply = _maxSupply;
+        uriPrefix = _uriPrefix;
+        uriSuffix = _uriSuffix;
+
     }
 
     function splitSignature(bytes memory sig)
