@@ -14,12 +14,14 @@ describe('UNIT TEST: DTK Hero Control Pool - transferERC721', () => {
     // user mint an dtkHero NFT
     await anotherERC721.connect(user).mint()
 
+    const playerId = 10253
     await anotherERC721
       .connect(user)
-      ['safeTransferFrom(address,address,uint256)'](
+      ['safeTransferFrom(address,address,uint256,bytes)'](
         user.address,
         dtkHeroControlPool.address,
         0,
+        ethers.utils.hexZeroPad(ethers.utils.hexlify(playerId), 32),
       )
 
     const balanceOfControlPoolBefore = await anotherERC721
@@ -56,12 +58,14 @@ describe('UNIT TEST: DTK Hero Control Pool - transferERC721', () => {
     // user mint an dtkHero NFT
     await dtkHero.connect(user).mint()
 
+    const playerId = 10253
     await dtkHero
       .connect(user)
-      ['safeTransferFrom(address,address,uint256)'](
+      ['safeTransferFrom(address,address,uint256,bytes)'](
         user.address,
         dtkHeroControlPool.address,
         0,
+        ethers.utils.hexZeroPad(ethers.utils.hexlify(playerId), 32),
       )
 
     const balanceOfControlPoolBefore = await dtkHero
@@ -72,7 +76,7 @@ describe('UNIT TEST: DTK Hero Control Pool - transferERC721', () => {
       .balanceOf(user.address)
     const depositerAddressBefore = await dtkHeroControlPool
       .connect(user)
-      .ownerOfDepositedDtkHero(0)
+      .depositInfoOfDtkHero(0)
 
     await dtkHeroControlPool
       .connect(owner)
@@ -87,7 +91,7 @@ describe('UNIT TEST: DTK Hero Control Pool - transferERC721', () => {
 
     const depositerAddressAfter = await dtkHeroControlPool
       .connect(user)
-      .ownerOfDepositedDtkHero(0)
+      .depositInfoOfDtkHero(0)
 
     expect(balanceOfControlPoolBefore).to.equal(1)
     expect(balanceOfControlPoolAfter).to.equal(0)
@@ -95,8 +99,8 @@ describe('UNIT TEST: DTK Hero Control Pool - transferERC721', () => {
     expect(balanceOfUserBefore).to.equal(0)
     expect(balanceOfUserAfter).to.equal(1)
 
-    expect(depositerAddressBefore).to.equal(user.address)
-    expect(depositerAddressAfter).to.equal(
+    expect(depositerAddressBefore.depositor).to.equal(user.address)
+    expect(depositerAddressAfter.depositor).to.equal(
       '0x0000000000000000000000000000000000000000',
     )
   })
