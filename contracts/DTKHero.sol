@@ -55,7 +55,7 @@ contract DTKHero is ERC721, ERC721Pausable, Ownable {
         uint256 _maxSupply,
         string memory _uriPrefix,
         string memory _uriSuffix
-    ) ERC721("DtkHero", "DTKH") {
+    ) ERC721("DTKHeroGenesis", "DTKHG") {
         require(_authSigner != address(0), "Invalid addr");
 
         authSigner = _authSigner;
