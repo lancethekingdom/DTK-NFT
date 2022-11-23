@@ -39,6 +39,72 @@ describe('UNIT TEST: DTK Hero Control Pool - onERC721Received', () => {
 
   it(`
     onERC721Received: should save the operator adddress to _depositedDtkHero
+    if incorrect bytes data is not provided, then hasPlayerId is ture 
+    while playerId.toNumber() will throw overflow error if the bytes too large to convert
+  `, async () => {
+    const [owner, user] = await ethers.getSigners()
+    const [dtkHeroControlPool, dtkHero] = await deployDTKHeroControlPool({
+      owner,
+    })
+
+    // user mint an dtkHero NFT
+    await dtkHero.connect(user).mint()
+
+    await dtkHero
+      .connect(user)
+      ['safeTransferFrom(address,address,uint256,bytes)'](
+        user.address,
+        dtkHeroControlPool.address,
+        0,
+        ethers.utils.toUtf8Bytes('testing123456'),
+      )
+
+    const depositInfo = await dtkHeroControlPool
+      .connect(user)
+      .depositInfoOfDtkHero(0)
+    console.log('depositInfo: ', depositInfo)
+
+    expect(() => depositInfo.playerId.toNumber()).to.throw(
+      `overflow [ See: https://links.ethers.org/v5-errors-NUMERIC_FAULT-overflow ] (fault="overflow", operation="toNumber", value="9221864413855250217124190500150", code=NUMERIC_FAULT, version=bignumber/5.7.0)`,
+    )
+  })
+
+  it(`
+  onERC721Received: should safetransferfrom function throw error if the bytes is invalid
+`, async () => {
+    const [owner, user] = await ethers.getSigners()
+    const [dtkHeroControlPool, dtkHero] = await deployDTKHeroControlPool({
+      owner,
+    })
+
+    // user mint an dtkHero NFT
+    await dtkHero.connect(user).mint()
+
+    const msgHash = ethers.utils.solidityKeccak256(['string'], ['test'])
+
+    const authedSig = await owner.signMessage(ethers.utils.arrayify(msgHash))
+
+    let errMsg: string = ''
+    try {
+      await dtkHero
+        .connect(user)
+        ['safeTransferFrom(address,address,uint256,bytes)'](
+          user.address,
+          dtkHeroControlPool.address,
+          0,
+          authedSig,
+        )
+    } catch (err) {
+      errMsg = (err as any).message
+    }
+
+    expect(errMsg).to.equal(
+      `VM Exception while processing transaction: reverted with panic code 0x11 (Arithmetic operation underflowed or overflowed outside of an unchecked block)`,
+    )
+  })
+
+  it(`
+    onERC721Received: should save the operator adddress to _depositedDtkHero
     if bytes data is not provided, then hasPlaterId is false
   `, async () => {
     const [owner, user] = await ethers.getSigners()
