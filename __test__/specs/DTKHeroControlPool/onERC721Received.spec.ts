@@ -15,13 +15,16 @@ describe('UNIT TEST: DTK Hero Control Pool - onERC721Received', () => {
 
     // user mint an dtkHero NFT
     await dtkHero.connect(user).mint()
+    const nonce = await dtkHeroControlPool
+      .connect(owner)
+      .currentNonce(user.address)
 
     await dtkHero
       .connect(user)
       ['safeTransferFrom(address,address,uint256)'](
         user.address,
         dtkHeroControlPool.address,
-        0,
+        nonce,
       )
 
     const balanceControlPool = await dtkHero
@@ -49,20 +52,22 @@ describe('UNIT TEST: DTK Hero Control Pool - onERC721Received', () => {
 
     // user mint an dtkHero NFT
     await dtkHero.connect(user).mint()
+    const nonce = await dtkHeroControlPool
+      .connect(owner)
+      .currentNonce(user.address)
 
     await dtkHero
       .connect(user)
       ['safeTransferFrom(address,address,uint256,bytes)'](
         user.address,
         dtkHeroControlPool.address,
-        0,
+        nonce,
         ethers.utils.toUtf8Bytes('testing123456'),
       )
 
     const depositInfo = await dtkHeroControlPool
       .connect(user)
       .depositInfoOfDtkHero(0)
-    console.log('depositInfo: ', depositInfo)
 
     expect(() => depositInfo.playerId.toNumber()).to.throw(
       `overflow [ See: https://links.ethers.org/v5-errors-NUMERIC_FAULT-overflow ] (fault="overflow", operation="toNumber", value="9221864413855250217124190500150", code=NUMERIC_FAULT, version=bignumber/5.7.0)`,
@@ -79,6 +84,9 @@ describe('UNIT TEST: DTK Hero Control Pool - onERC721Received', () => {
 
     // user mint an dtkHero NFT
     await dtkHero.connect(user).mint()
+    const nonce = await dtkHeroControlPool
+      .connect(owner)
+      .currentNonce(user.address)
 
     const msgHash = ethers.utils.solidityKeccak256(['string'], ['test'])
 
@@ -91,7 +99,7 @@ describe('UNIT TEST: DTK Hero Control Pool - onERC721Received', () => {
         ['safeTransferFrom(address,address,uint256,bytes)'](
           user.address,
           dtkHeroControlPool.address,
-          0,
+          nonce,
           authedSig,
         )
     } catch (err) {
@@ -114,6 +122,9 @@ describe('UNIT TEST: DTK Hero Control Pool - onERC721Received', () => {
 
     // user mint an dtkHero NFT
     await dtkHero.connect(user).mint()
+    const nonce = await dtkHeroControlPool
+      .connect(owner)
+      .currentNonce(user.address)
 
     const playerId = 10253
     await dtkHero
@@ -121,7 +132,7 @@ describe('UNIT TEST: DTK Hero Control Pool - onERC721Received', () => {
       ['safeTransferFrom(address,address,uint256,bytes)'](
         user.address,
         dtkHeroControlPool.address,
-        0,
+        nonce,
         ethers.utils.hexZeroPad(ethers.utils.hexlify(playerId), 32),
       )
 
