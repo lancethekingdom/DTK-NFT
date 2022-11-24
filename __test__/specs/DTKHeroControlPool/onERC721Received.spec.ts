@@ -15,16 +15,14 @@ describe('UNIT TEST: DTK Hero Control Pool - onERC721Received', () => {
 
     // user mint an dtkHero NFT
     await dtkHero.connect(user).mint()
-    const nonce = await dtkHeroControlPool
-      .connect(owner)
-      .currentNonce(user.address)
+    const tokenId = 0
 
     await dtkHero
       .connect(user)
       ['safeTransferFrom(address,address,uint256)'](
         user.address,
         dtkHeroControlPool.address,
-        nonce,
+        tokenId,
       )
 
     const balanceControlPool = await dtkHero
@@ -52,16 +50,14 @@ describe('UNIT TEST: DTK Hero Control Pool - onERC721Received', () => {
 
     // user mint an dtkHero NFT
     await dtkHero.connect(user).mint()
-    const nonce = await dtkHeroControlPool
-      .connect(owner)
-      .currentNonce(user.address)
+    const tokenId = 0
 
     await dtkHero
       .connect(user)
       ['safeTransferFrom(address,address,uint256,bytes)'](
         user.address,
         dtkHeroControlPool.address,
-        nonce,
+        tokenId,
         ethers.utils.toUtf8Bytes('testing123456'),
       )
 
@@ -84,9 +80,7 @@ describe('UNIT TEST: DTK Hero Control Pool - onERC721Received', () => {
 
     // user mint an dtkHero NFT
     await dtkHero.connect(user).mint()
-    const nonce = await dtkHeroControlPool
-      .connect(owner)
-      .currentNonce(user.address)
+    const tokenId = 0
 
     const msgHash = ethers.utils.solidityKeccak256(['string'], ['test'])
 
@@ -99,7 +93,7 @@ describe('UNIT TEST: DTK Hero Control Pool - onERC721Received', () => {
         ['safeTransferFrom(address,address,uint256,bytes)'](
           user.address,
           dtkHeroControlPool.address,
-          nonce,
+          tokenId,
           authedSig,
         )
     } catch (err) {
@@ -122,9 +116,7 @@ describe('UNIT TEST: DTK Hero Control Pool - onERC721Received', () => {
 
     // user mint an dtkHero NFT
     await dtkHero.connect(user).mint()
-    const nonce = await dtkHeroControlPool
-      .connect(owner)
-      .currentNonce(user.address)
+    const tokenId = 0
 
     const playerId = 10253
     await dtkHero
@@ -132,7 +124,7 @@ describe('UNIT TEST: DTK Hero Control Pool - onERC721Received', () => {
       ['safeTransferFrom(address,address,uint256,bytes)'](
         user.address,
         dtkHeroControlPool.address,
-        nonce,
+        tokenId,
         ethers.utils.hexZeroPad(ethers.utils.hexlify(playerId), 32),
       )
 
@@ -161,6 +153,7 @@ describe('UNIT TEST: DTK Hero Control Pool - onERC721Received', () => {
 
     // user mint an dtkHero NFT
     await anotherERC721.connect(user).mint()
+    const tokenId = 0
 
     const playerId = 10253
     await anotherERC721
@@ -168,7 +161,7 @@ describe('UNIT TEST: DTK Hero Control Pool - onERC721Received', () => {
       ['safeTransferFrom(address,address,uint256,bytes)'](
         user.address,
         dtkHeroControlPool.address,
-        0,
+        tokenId,
         ethers.utils.hexZeroPad(ethers.utils.hexlify(playerId), 32),
       )
 

@@ -21,14 +21,16 @@ export const deployDTKHeroControlPool = async ({
   )
   const targetOwner = owner ?? defaultOwner
   const targetDtkHero = dtkHero ?? (await deployMintableERC721({ owner }))[0]
+  const targetAuthSigner = authSigner ?? targetOwner
 
   const controlPool = await DTKHeroControlPoolContractFactory.connect(
     targetOwner,
-  ).deploy(targetDtkHero.address, authSigner?.address ?? targetOwner.address)
+  ).deploy(targetDtkHero.address, targetAuthSigner.address)
 
-  return [controlPool, targetDtkHero, targetOwner] as [
+  return [controlPool, targetDtkHero, targetOwner, targetAuthSigner] as [
     DTKHeroControlPool,
     MintableERC721,
+    SignerWithAddress,
     SignerWithAddress,
   ]
 }

@@ -319,7 +319,7 @@ describe('UNIT TEST: DTK Hero Control Pool - withdrawDTKHero', () => {
       .connect(authSigner)
       .currentNonce(playerWallet.address)
 
-    // create incorrect signature
+    // create signature
     const msgHash = ethers.utils.solidityKeccak256(
       ['string', 'address', 'address', 'uint256', 'uint256'],
       [

@@ -28,7 +28,7 @@ contract MintableERC721 is ERC721, ERC721Pausable, Ownable {
     mapping(uint256 => bool) depositedTokens;
 
     // for metadata control
-    string public uriPrefix = "";
+    string public uriPrefix = "http://test.com/";
     string public uriSuffix = "";
 
     event Burn(address indexed owner, uint256 indexed tokenId);
