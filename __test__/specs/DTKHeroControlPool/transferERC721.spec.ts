@@ -3,7 +3,7 @@ import { expect } from 'chai'
 import { ethers } from 'hardhat'
 import { deployDTKHeroControlPool } from '../../utils/deployDTKHeroContolPool'
 
-describe.skip('UNIT TEST: DTK Hero Control Pool - transferERC721', () => {
+describe('UNIT TEST: DTK Hero Control Pool - transferERC721', () => {
   it('transferERC721: should transfer corresponding erc721 to the target address', async () => {
     const [owner, user] = await ethers.getSigners()
     const [dtkHeroControlPool, _dtkHero] = await deployDTKHeroControlPool({

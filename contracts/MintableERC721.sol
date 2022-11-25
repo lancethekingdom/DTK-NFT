@@ -29,18 +29,23 @@ contract MintableERC721 is ERC721, ERC721Pausable, Ownable {
     mapping(uint256 => bool) depositedTokens;
 
     // for metadata control
-    string public uriPrefix = "http://test.com/";
-    string public uriSuffix = "";
+    string public uriPrefix;
+    string public uriSuffix;
 
     event Burn(address indexed owner, uint256 indexed tokenId);
 
-    constructor(address _authSigner, uint256 _maxSupply)
-        ERC721("HeroMysteryBox", "HMB")
-    {
+    constructor(
+        address _authSigner,
+        uint256 _maxSupply,
+        string memory _uriPrefix,
+        string memory _uriSuffix
+    ) ERC721("DTKHeroGenesis", "DTKHG") {
         require(_authSigner != address(0), "Invalid addr");
 
         authSigner = _authSigner;
         maxSupply = _maxSupply;
+        uriPrefix = _uriPrefix;
+        uriSuffix = _uriSuffix;
     }
 
     function _baseURI() internal view virtual override returns (string memory) {
@@ -156,7 +161,6 @@ contract MintableERC721 is ERC721, ERC721Pausable, Ownable {
     function mint() public {
         super._safeMint(_msgSender(), supply.current());
         supply.increment();
-        minted.increment();
     }
 
     modifier burnCompliance(uint256 tokenId) {

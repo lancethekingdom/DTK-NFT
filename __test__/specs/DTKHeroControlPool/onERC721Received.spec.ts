@@ -3,7 +3,7 @@ import { expect, assert } from 'chai'
 import { ethers } from 'hardhat'
 import { deployDTKHeroControlPool } from '../../utils/deployDTKHeroContolPool'
 
-describe.skip('UNIT TEST: DTK Hero Control Pool - onERC721Received', () => {
+describe('UNIT TEST: DTK Hero Control Pool - onERC721Received', () => {
   it(`
     onERC721Received: should save the operator adddress to _depositedDtkHero
     if bytes data is not provided, then hasPlaterId is false

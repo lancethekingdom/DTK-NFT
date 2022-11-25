@@ -18,6 +18,8 @@ export const deployMintableERC721 = async ({
   const token = await TokenContractFactory.connect(targetOwner).deploy(
     authSigner?.address ?? targetOwner.address,
     3000,
+    'http://test.com/',
+    '',
   )
   return [token, targetOwner] as [MintableERC721, SignerWithAddress]
 }
