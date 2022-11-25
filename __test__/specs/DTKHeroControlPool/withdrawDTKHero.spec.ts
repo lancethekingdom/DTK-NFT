@@ -2,7 +2,7 @@ import { expect, assert } from 'chai'
 import { ethers } from 'hardhat'
 import { deployDTKHeroControlPool } from '../../utils/deployDTKHeroContolPool'
 
-describe('UNIT TEST: DTK Hero Control Pool - withdrawDTKHero', () => {
+describe.skip('UNIT TEST: DTK Hero Control Pool - withdrawDTKHero', () => {
   it(`
     withdrawDTKHero: should throw error 
     if token has not been deposited

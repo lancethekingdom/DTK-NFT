@@ -18,6 +18,7 @@ contract MintableERC721 is ERC721, ERC721Pausable, Ownable {
 
     // for mint control
     Counters.Counter private supply;
+    Counters.Counter private minted; // for micmicking thirdweb droperc721
     uint256 public maxSupply;
 
     // for signature control
@@ -41,13 +42,17 @@ contract MintableERC721 is ERC721, ERC721Pausable, Ownable {
         authSigner = _authSigner;
         maxSupply = _maxSupply;
     }
-    
+
     function _baseURI() internal view virtual override returns (string memory) {
         return uriPrefix;
     }
 
     function totalSupply() public view returns (uint256) {
         return supply.current();
+    }
+
+    function totalMinted() public view returns (uint256) {
+        return minted.current();
     }
 
     function tokenURI(uint256 tokenId)
@@ -151,6 +156,7 @@ contract MintableERC721 is ERC721, ERC721Pausable, Ownable {
     function mint() public {
         super._safeMint(_msgSender(), supply.current());
         supply.increment();
+        minted.increment();
     }
 
     modifier burnCompliance(uint256 tokenId) {

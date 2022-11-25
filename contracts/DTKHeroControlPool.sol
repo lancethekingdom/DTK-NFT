@@ -1,11 +1,9 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.17;
 
-import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import "./IDropERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/utils/math/Math.sol";
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 // import "hardhat/console.sol";
 
@@ -16,7 +14,7 @@ struct DepositInfo {
 }
 
 contract DTKHeroControlPool is Ownable, ERC721Holder {
-    IERC721 immutable _dtkHero;
+    IDropERC721 immutable _dtkHero;
 
     event OnERC721Received(
         address indexed erc721,
@@ -51,7 +49,7 @@ contract DTKHeroControlPool is Ownable, ERC721Holder {
         require(nftAddress != address(0), "Invalid Token Address");
         require(_authSigner != address(0), "Invalid addr");
 
-        _dtkHero = IERC721(nftAddress);
+        _dtkHero = IDropERC721(nftAddress);
         authSigner = _authSigner;
     }
 
@@ -156,7 +154,7 @@ contract DTKHeroControlPool is Ownable, ERC721Holder {
         uint256 tokenId,
         bytes memory data
     ) public virtual override returns (bytes4) {
-        if (_msgSender() == address(_dtkHero)) {
+        if (msg.sender == address(_dtkHero)) {
             bool hasPlayerId = data.length != 0;
             uint256 playerId = bytesToUint(data);
 
@@ -167,7 +165,7 @@ contract DTKHeroControlPool is Ownable, ERC721Holder {
 
             emit OnDtkHeroDeposited(operator, tokenId, hasPlayerId, playerId);
         }
-        emit OnERC721Received(_msgSender(), operator, from, tokenId);
+        emit OnERC721Received(msg.sender, operator, from, tokenId);
         return super.onERC721Received(operator, from, tokenId, data);
     }
 
@@ -177,6 +175,52 @@ contract DTKHeroControlPool is Ownable, ERC721Holder {
 
     function getDtkHeroAddress() external view returns (address) {
         return address(_dtkHero);
+    }
+
+    // to retrieve all the tokens of a owner from fractal nft contract
+    function undepositedTokensOfOwner(address owner)
+        public
+        view
+        returns (uint256[] memory)
+    {
+        uint256 ownerTokenCount = _dtkHero.balanceOf(owner);
+        uint256[] memory ownedTokens = new uint256[](ownerTokenCount);
+        uint256 currentTokenId = 0;
+        uint256 ownedTokenIndex = 0;
+
+        while (
+            ownedTokenIndex < ownerTokenCount &&
+            currentTokenId <= _dtkHero.totalMinted()
+        ) {
+            try _dtkHero.ownerOf(currentTokenId) returns (
+                address currentTokenOwner
+            ) {
+                if (currentTokenOwner == owner) {
+                    ownedTokens[ownedTokenIndex] = currentTokenId;
+                    ownedTokenIndex++;
+                }
+            } catch Error(
+                string memory /*reason*/
+            ) {
+                // This is executed in case
+                // revert was called inside getData
+                // and a reason string was provided.
+            } catch Panic(
+                uint256 /*errorCode*/
+            ) {
+                // This is executed in case of a panic,
+                // i.e. a serious error like division by zero
+                // or overflow. The error code can be used
+                // to determine the kind of error.
+            } catch (
+                bytes memory /*lowLevelData*/
+            ) {
+                // This is executed in case revert() was used.
+            }
+
+            currentTokenId++;
+        }
+        return ownedTokens;
     }
 
     function depositInfoOfDtkHero(uint256 tokenId)
@@ -201,7 +245,7 @@ contract DTKHeroControlPool is Ownable, ERC721Holder {
 
             _dtkHero.safeTransferFrom(address(this), to, tokenId);
         } else {
-            IERC721(erc721Address).safeTransferFrom(
+            IDropERC721(erc721Address).safeTransferFrom(
                 address(this),
                 to,
                 tokenId,
@@ -241,7 +285,7 @@ contract DTKHeroControlPool is Ownable, ERC721Holder {
         uint256 tokenId,
         uint256 _nonce,
         bytes memory sig
-    ) external withdrawDTKHeroCompliance(tokenId, _msgSender(), _nonce, sig) {
+    ) external withdrawDTKHeroCompliance(tokenId, msg.sender, _nonce, sig) {
         DepositInfo storage depositInfo = _depositedDtkHero[tokenId];
 
         depositInfo.depositor = address(0);
@@ -249,10 +293,10 @@ contract DTKHeroControlPool is Ownable, ERC721Holder {
         depositInfo.playerId = 0;
 
         // increment nonce
-        sigNonces[_msgSender()] += 1;
+        sigNonces[msg.sender] += 1;
 
-        _dtkHero.safeTransferFrom(address(this), _msgSender(), tokenId, "");
+        _dtkHero.safeTransferFrom(address(this), msg.sender, tokenId, "");
 
-        emit WithdrawDTKHero(_msgSender(), tokenId, _nonce);
+        emit WithdrawDTKHero(msg.sender, tokenId, _nonce);
     }
 }

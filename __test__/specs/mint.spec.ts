@@ -3,7 +3,7 @@ import { deployDTKHero } from '../utils/deployDTKHero'
 import { expect, assert } from 'chai'
 import { ethers } from 'hardhat'
 
-describe('UNIT TEST: DTK Hero - mint', () => {
+describe.skip('UNIT TEST: DTK Hero - mint', () => {
   it('should throw error if contract is paused', async () => {
     const [owner, authSigner, target] = await ethers.getSigners()
     const [DTKHero] = await deployDTKHero({ owner, authSigner })

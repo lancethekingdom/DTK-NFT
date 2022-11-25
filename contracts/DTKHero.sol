@@ -5,6 +5,7 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Pausable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+
 // import "hardhat/console.sol";
 
 struct TokenInfo {
@@ -18,6 +19,7 @@ contract DTKHero is ERC721, ERC721Pausable, Ownable {
 
     // for mint control
     Counters.Counter private supply;
+    Counters.Counter private minted; // for micmicking thirdweb droperc721
     uint256 public maxSupply;
 
     // for signature control
@@ -62,7 +64,6 @@ contract DTKHero is ERC721, ERC721Pausable, Ownable {
         maxSupply = _maxSupply;
         uriPrefix = _uriPrefix;
         uriSuffix = _uriSuffix;
-
     }
 
     function splitSignature(bytes memory sig)
@@ -155,6 +156,10 @@ contract DTKHero is ERC721, ERC721Pausable, Ownable {
 
     function totalSupply() public view returns (uint256) {
         return supply.current();
+    }
+
+    function totalMinted() public view returns (uint256) {
+        return minted.current();
     }
 
     function tokenURI(uint256 tokenId)
@@ -278,8 +283,9 @@ contract DTKHero is ERC721, ERC721Pausable, Ownable {
         super._safeMint(_msgSender(), supply.current());
 
         sigNonces[_msgSender()][nonce] = true;
-        emit Mint(_msgSender(), supply.current(), nonce);
         supply.increment();
+        minted.increment();
+        emit Mint(_msgSender(), supply.current(), nonce);
     }
 
     modifier burnCompliance(uint256 tokenId) {
