@@ -154,7 +154,7 @@ contract DTKHeroControlPool is Ownable, ERC721Holder {
         uint256 tokenId,
         bytes memory data
     ) public virtual override returns (bytes4) {
-        if (msg.sender == address(_dtkHero)) {
+        if (_msgSender() == address(_dtkHero)) {
             bool hasPlayerId = data.length != 0;
             uint256 playerId = bytesToUint(data);
 
@@ -165,7 +165,7 @@ contract DTKHeroControlPool is Ownable, ERC721Holder {
 
             emit OnDtkHeroDeposited(operator, tokenId, hasPlayerId, playerId);
         }
-        emit OnERC721Received(msg.sender, operator, from, tokenId);
+        emit OnERC721Received(_msgSender(), operator, from, tokenId);
         return super.onERC721Received(operator, from, tokenId, data);
     }
 
@@ -285,7 +285,7 @@ contract DTKHeroControlPool is Ownable, ERC721Holder {
         uint256 tokenId,
         uint256 _nonce,
         bytes memory sig
-    ) external withdrawDTKHeroCompliance(tokenId, msg.sender, _nonce, sig) {
+    ) external withdrawDTKHeroCompliance(tokenId, _msgSender(), _nonce, sig) {
         DepositInfo storage depositInfo = _depositedDtkHero[tokenId];
 
         depositInfo.depositor = address(0);
@@ -293,10 +293,10 @@ contract DTKHeroControlPool is Ownable, ERC721Holder {
         depositInfo.playerId = 0;
 
         // increment nonce
-        sigNonces[msg.sender] += 1;
+        sigNonces[_msgSender()] += 1;
 
-        _dtkHero.safeTransferFrom(address(this), msg.sender, tokenId, "");
+        _dtkHero.safeTransferFrom(address(this), _msgSender(), tokenId, "");
 
-        emit WithdrawDTKHero(msg.sender, tokenId, _nonce);
+        emit WithdrawDTKHero(_msgSender(), tokenId, _nonce);
     }
 }
