@@ -38,7 +38,7 @@
   },
   "dependencies": {
     "@ethersproject/bignumber": "^5.7.0",
-    "@openzeppelin/contracts": "^4.7.3",
+    "@openzeppelin/contracts": "^4.8.0",
     "@openzeppelin/contracts-upgradeable": "^4.8.0",
     "@thirdweb-dev/contracts": "^3.2.6",
     "date-fns": "^2.29.2",
