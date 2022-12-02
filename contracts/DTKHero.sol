@@ -24,7 +24,7 @@ contract DTKHero is ERC721, ERC721Pausable, Ownable {
 
     // for signature control
     address public authSigner;
-    mapping(address => mapping(uint256 => bool)) sigNonces; // all the nonces consumed by each address
+    mapping(address => uint256) sigNonces; // all the nonces consumed by each address
 
     // for deposit control
     mapping(uint256 => bool) depositedTokens;
@@ -154,6 +154,10 @@ contract DTKHero is ERC721, ERC721Pausable, Ownable {
         return uriPrefix;
     }
 
+    function currentNonce(address walletAddress) public view returns (uint256) {
+        return sigNonces[walletAddress];
+    }
+
     function totalSupply() public view returns (uint256) {
         return supply.current();
     }
@@ -266,7 +270,7 @@ contract DTKHero is ERC721, ERC721Pausable, Ownable {
         bytes memory sig
     ) {
         _requireNotPaused();
-        require(!sigNonces[minter][nonce], "nonce already consumed");
+        require(currentNonce(minter) == nonce, "Invalid nonce");
 
         require(
             _validateHash("mint(uint256,uint256,bytes)", minter, nonce, sig),
@@ -282,7 +286,9 @@ contract DTKHero is ERC721, ERC721Pausable, Ownable {
     {
         super._safeMint(_msgSender(), supply.current());
 
-        sigNonces[_msgSender()][nonce] = true;
+        // increment nonce
+        sigNonces[_msgSender()] += 1;
+
         supply.increment();
         minted.increment();
         emit Mint(_msgSender(), supply.current(), nonce);
