@@ -107,7 +107,7 @@ describe('UNIT TEST: DTK Hero Control Pool - onERC721Received', () => {
 
   it(`
     onERC721Received: should save the operator adddress to _depositedDtkHero
-    if bytes data is not provided, then hasPlaterId is false
+    if correct playerId bytes data is provided, save to blockchain 
   `, async () => {
     const [owner, user] = await ethers.getSigners()
     const [dtkHeroControlPool, dtkHero] = await deployDTKHeroControlPool({
@@ -139,6 +139,7 @@ describe('UNIT TEST: DTK Hero Control Pool - onERC721Received', () => {
     expect(balanceControlPool).to.equal(1)
     expect(depositInfo.depositor).to.equal(user.address)
     expect(depositInfo.playerId.toNumber()).to.equal(playerId)
+    expect(depositInfo.hasPlayerId).to.be.true
   })
 
   it(`
